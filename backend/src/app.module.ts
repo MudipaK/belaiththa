@@ -7,6 +7,8 @@ import databaseConfig from './config/database.config';
 import { PrismaService } from './prisma/prisma.service';
 import { AppointmentModule } from './appointment/appointment.module';
 import { PrescriptionModule } from './prescription/prescription.module';
+import { AdminModule } from './admin/admin.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { PrescriptionModule } from './prescription/prescription.module';
     }),
     AuthModule,
     AppointmentModule,
+    AdminModule,
     PrescriptionModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

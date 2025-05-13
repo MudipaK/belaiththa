@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { TextField, Button, Typography, Container, Box, Link } from '@mui/material';
+import { TextField, Button, Typography, Container, Box, Link, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
 
@@ -9,6 +9,7 @@ interface SignupData {
   email: string;
   password: string;
   confirmPassword: string;
+  role: string;
 }
 
 export default function Signup() {
@@ -20,13 +21,14 @@ export default function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'CUSTOMER'
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name as string]: value
     }));
   };
 
@@ -43,6 +45,7 @@ export default function Signup() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        role: formData.role
       });
       login(response.token, response.user);
       navigate('/dashboard');
@@ -112,6 +115,21 @@ export default function Signup() {
             value={formData.confirmPassword}
             onChange={handleChange}
           />
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="role-label">Role</InputLabel>
+            <Select
+              labelId="role-label"
+              id="role"
+              name="role"
+              value={formData.role}
+              label="Role"
+              onChange={handleChange}
+            >
+              <MenuItem value="CUSTOMER">Customer</MenuItem>
+              {/* <MenuItem value="DENTIST">Dentist</MenuItem>
+              <MenuItem value="RECEPTIONIST">Receptionist</MenuItem> */}
+            </Select>
+          </FormControl>
           {error && (
             <Typography color="error" sx={{ mt: 2 }}>
               {error}

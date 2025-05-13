@@ -20,6 +20,8 @@
     "axios": "^1.6.7",
     "date-fns": "^4.1.0",
     "frontend": "file:",
+    "google-auth-library": "^9.15.1",
+    "googleapis": "^148.0.0",
     "react": "^18.2.0",
     "react-countup": "^6.5.3",
     "react-dom": "^18.2.0",

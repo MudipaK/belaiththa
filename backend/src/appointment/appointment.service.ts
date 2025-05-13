@@ -7,12 +7,16 @@ import { AppointmentStatus } from '@prisma/client';
 import { BlockSlotDto } from './dto/block-slot.dto';
 import * as bcrypt from 'bcrypt';
 import { GenerateBillDto } from './dto/generate-bill.dto';
+import { NotificationService } from '../notification/notification.service';
 
 type AllowedRole = Extract<Role, Role.MAIN_DOCTOR | Role.DENTIST | Role.RECEPTIONIST>;
 
 @Injectable()
 export class AppointmentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto) {
     // Verify that the dentist exists and is a dentist
@@ -79,7 +83,7 @@ export class AppointmentService {
     }
 
     // Create the appointment
-    return this.prisma.appointment.create({
+    const appointment = await this.prisma.appointment.create({
       data: {
         customerId: customer.id,
         dentistId: createAppointmentDto.dentistId,
@@ -93,6 +97,8 @@ export class AppointmentService {
         dentist: true,
       },
     });
+
+    return appointment;
   }
 
   async findAll() {
@@ -137,6 +143,16 @@ export class AppointmentService {
 
       if (appointment.status === 'CANCELLED' && updateAppointmentDto.status !== 'CANCELLED') {
         throw new BadRequestException('Cannot change status of a cancelled appointment');
+      }
+
+      // Create notification for status change
+      if (updateAppointmentDto.status === AppointmentStatus.CONFIRMED || 
+          updateAppointmentDto.status === AppointmentStatus.CANCELLED) {
+        await this.notificationService.createAppointmentNotification(
+          appointment.customerId,
+          appointment.id,
+          updateAppointmentDto.status,
+        );
       }
     }
 

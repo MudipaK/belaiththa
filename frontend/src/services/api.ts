@@ -20,6 +20,7 @@ export interface SignupData {
   name: string;
   email: string;
   password: string;
+  role: string;
 }
 
 interface CreateUserData extends SignupData {
@@ -153,6 +154,21 @@ export const prescriptionApi = {
 
   delete: async (id: number) => {
     const response = await axios.delete(`${API_URL}/prescriptions/${id}`);
+    return response.data;
+  },
+};
+
+export const notificationApi = {
+  getUserNotifications: async () => {
+    const response = await axios.get(`${API_URL}/notifications/user`);
+    return response.data;
+  },
+  markNotificationAsRead: async (notificationId: number) => {
+    const response = await axios.post(`${API_URL}/notifications/${notificationId}/read`);
+    return response.data;
+  },
+  markAllNotificationsAsRead: async () => {
+    const response = await axios.post(`${API_URL}/notifications/read-all`);
     return response.data;
   },
 };

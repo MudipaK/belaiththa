@@ -284,10 +284,11 @@ const DentistDashboard = () => {
   const isTimeSlotBooked = (time: string): boolean => {
     if (!selectedDate) return false;
 
-    return appointments.some(app => 
-      isSameDay(new Date(app.appointmentDate), selectedDate) &&
-      format(new Date(app.appointmentDate), 'hh:mm a') === time
-    );
+    return appointments.some(app => {
+      const appointmentDate = new Date(app.appointmentDate);
+      const formattedTime = format(appointmentDate, 'hh:mm a');
+      return isSameDay(appointmentDate, selectedDate) && formattedTime === time;
+    });
   };
 
   const handleStatusChange = async (appointmentId: number, newStatus: string) => {

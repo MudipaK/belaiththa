@@ -22,6 +22,12 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
+  Badge,
+  IconButton,
+  Menu,
+  MenuItem,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import {
   Event as EventIcon,
@@ -29,10 +35,11 @@ import {
   LocalHospital as HospitalIcon,
   Payment as PaymentIcon,
   Medication as MedicationIcon,
+  Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { dashboardStyles } from './DashboardStyles';
-import { appointmentApi, prescriptionApi } from '../../services/api';
+import { appointmentApi, prescriptionApi, notificationApi } from '../../services/api';
 import { format } from 'date-fns';
 
 interface Appointment {
@@ -53,6 +60,15 @@ interface Prescription {
   createdAt: string;
 }
 
+interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 const CustomerDashboard = () => {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -61,11 +77,15 @@ const CustomerDashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [appointmentSubTab, setAppointmentSubTab] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id) {
       fetchAppointments();
       fetchPrescriptions();
+      fetchNotifications();
     }
   }, [user?.id]);
 
@@ -90,6 +110,47 @@ const CustomerDashboard = () => {
       setError(err.response?.data?.message || 'Failed to fetch prescriptions');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await notificationApi.getUserNotifications();
+      setNotifications(data);
+    } catch (err: any) {
+      console.error('Failed to fetch notifications:', err);
+    }
+  };
+
+  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchorEl(null);
+  };
+
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      await notificationApi.markNotificationAsRead(notificationId);
+      setNotifications(notifications.map(notification => 
+        notification.id === notificationId 
+          ? { ...notification, isRead: true }
+          : notification
+      ));
+    } catch (err: any) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationApi.markAllNotificationsAsRead();
+      setNotifications(notifications.map(notification => ({ ...notification, isRead: true })));
+      handleNotificationClose();
+      setSuccessMessage('All notifications marked as read');
+    } catch (err: any) {
+      console.error('Failed to mark all notifications as read:', err);
     }
   };
 
@@ -169,9 +230,75 @@ const CustomerDashboard = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 14, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Welcome, {user?.name}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Welcome, {user?.name}
+        </Typography>
+        <IconButton 
+          color="primary" 
+          onClick={handleNotificationClick}
+          sx={{ position: 'relative' }}
+        >
+          <Badge 
+            badgeContent={notifications.filter(n => !n.isRead).length} 
+            color="error"
+          >
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
+        <Menu
+          anchorEl={notificationAnchorEl}
+          open={Boolean(notificationAnchorEl)}
+          onClose={handleNotificationClose}
+          PaperProps={{
+            style: {
+              maxHeight: 400,
+              width: 360,
+            },
+          }}
+        >
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Notifications</Typography>
+            {notifications.some(n => !n.isRead) && (
+              <Button size="small" onClick={handleMarkAllAsRead}>
+                Mark all as read
+              </Button>
+            )}
+          </Box>
+          <Divider />
+          {notifications.length === 0 ? (
+            <MenuItem disabled>
+              <Typography variant="body2" color="text.secondary">
+                No notifications
+              </Typography>
+            </MenuItem>
+          ) : (
+            notifications.map((notification) => (
+              <MenuItem
+                key={notification.id}
+                onClick={() => handleMarkAsRead(notification.id)}
+                sx={{
+                  backgroundColor: notification.isRead ? 'inherit' : 'action.hover',
+                  whiteSpace: 'normal',
+                  py: 1,
+                }}
+              >
+                <Box>
+                  <Typography variant="subtitle2" color="primary">
+                    {notification.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {notification.message}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {format(new Date(notification.createdAt), 'PPp')}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))
+          )}
+        </Menu>
+      </Box>
 
       {/* Stats Section */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -301,6 +428,18 @@ const CustomerDashboard = () => {
       ) : (
         renderPrescriptionsTab()
       )}
+
+      {/* Success Message Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="success" onClose={() => setSuccessMessage(null)}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

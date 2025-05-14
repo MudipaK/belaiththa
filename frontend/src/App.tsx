@@ -12,6 +12,7 @@ import MainDoctorDashboard from './components/dashboard/MainDoctorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './components/Unauthorized';
 import { AuthProvider } from './context/AuthContext';
+import PatientProfile from './components/patients/PatientProfile';
 
 const theme = createTheme({
   palette: {
@@ -79,6 +80,8 @@ function App() {
                 
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/" replace />} />
+
+                <Route path="/patients/:patientId" element={<PatientProfile />} />
               </Routes>
             </Box>
           </Box>

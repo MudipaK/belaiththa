@@ -9,6 +9,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationModule } from './notification/notification.module';
+import { PatientsModule } from './patients/patients.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NotificationModule } from './notification/notification.module';
     AdminModule,
     PrescriptionModule,
     NotificationModule,
+    PatientsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

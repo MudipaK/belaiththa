@@ -30,6 +30,7 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  InputAdornment,
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DateCalendar } from '@mui/x-date-pickers';
@@ -45,11 +46,13 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { dashboardStyles } from './DashboardStyles';
 import { appointmentApi, prescriptionApi } from '../../services/api';
 import { message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 interface Appointment {
   id: number;
@@ -109,6 +112,8 @@ const DentistDashboard = () => {
     instructions: '',
   });
   const [patientFilter, setPatientFilter] = useState<'all' | 'confirmed' | 'completed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.id) {
@@ -362,9 +367,22 @@ const DentistDashboard = () => {
     }
   };
 
+  const handlePatientClick = (patientId: number) => {
+    navigate(`/patients/${patientId}`);
+  };
+
   const renderPatientsTab = () => {
     const confirmedPatients = appointments.filter(app => app.status === 'CONFIRMED');
     const completedPatients = appointments.filter(app => app.status === 'COMPLETED');
+
+    // Filter patients based on search query
+    const filteredPatients = appointments.filter(app => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        app.customer.name.toLowerCase().includes(searchLower) ||
+        app.customer.email.toLowerCase().includes(searchLower)
+      );
+    });
 
     return (
       <Box sx={{ mt: 3 }}>
@@ -372,18 +390,43 @@ const DentistDashboard = () => {
           <Typography variant="h6" fontWeight={600} color="primary">
             Patient Management
           </Typography>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Filter Patients</InputLabel>
-            <Select
-              value={patientFilter}
-              label="Filter Patients"
-              onChange={(e) => setPatientFilter(e.target.value as 'all' | 'confirmed' | 'completed')}
-            >
-              <MenuItem value="all">All Patients</MenuItem>
-              <MenuItem value="confirmed">Confirmed</MenuItem>
-              <MenuItem value="completed">Completed</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField
+            placeholder="Search by patient name or phone number..."
+            variant="outlined"
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{
+              minWidth: 300,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                backgroundColor: 'white',
+                '&:hover': {
+                  '& > fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setSearchQuery('')}
+                    edge="end"
+                  >
+                    <CancelIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
         </Box>
 
         {/* All Patients with Prescriptions */}
@@ -412,18 +455,23 @@ const DentistDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {appointments.length === 0 ? (
+                  {filteredPatients.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} align="center">No patients found</TableCell>
                     </TableRow>
                   ) : (
-                    appointments.map((appointment) => {
+                    filteredPatients.map((appointment) => {
                       const patientPrescriptions = prescriptions.filter(
                         p => p.patientId === appointment.customer.id
                       );
                       
                       return (
-                        <TableRow key={appointment.id} hover>
+                        <TableRow 
+                          key={appointment.id} 
+                          hover 
+                          onClick={() => handlePatientClick(appointment.customer.id)}
+                          sx={{ cursor: 'pointer' }}
+                        >
                           <TableCell>{appointment.customer.name}</TableCell>
                           <TableCell>{appointment.customer.email}</TableCell>
                           <TableCell>{format(new Date(appointment.appointmentDate), 'MMM d, yyyy hh:mm a')}</TableCell>
@@ -462,7 +510,8 @@ const DentistDashboard = () => {
                               variant="contained"
                               color="primary"
                               startIcon={<AddIcon />}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setSelectedPatient(appointment);
                                 setOpenPrescriptionDialog(true);
                               }}

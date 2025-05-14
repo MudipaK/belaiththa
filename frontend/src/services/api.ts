@@ -172,3 +172,15 @@ export const notificationApi = {
     return response.data;
   },
 };
+
+export const patientApi = {
+  getPatientDetails: async (patientId: string) => {
+    try {
+      const response = await axios.get(`${API_URL}/patients/${patientId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error in getPatientDetails:', error);
+      throw new Error('Failed to fetch patient details');
+    }
+  },
+};

@@ -62,22 +62,10 @@ const timeSlots = [
   '04:00 PM', '04:30 PM', '05:00 PM'
 ];
 
-const services = [
-  'Dental Cleaning',
-  'Root Canal',
-  'Teeth Whitening',
-  'Dental Filling',
-  'Tooth Extraction',
-  'Dental Crown',
-  'Dental Bridge',
-  'Dental Implant',
-];
-
 const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dentistId: defaultDentistId }) => {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedTime, setSelectedTime] = useState('');
-  const [selectedService, setSelectedService] = useState('');
   const [notes, setNotes] = useState('');
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
@@ -214,7 +202,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dent
   };
 
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime || !selectedService || !selectedDentistId) {
+    if (!selectedDate || !selectedTime || !selectedDentistId) {
       setError('Please fill in all required fields');
       return;
     }
@@ -243,7 +231,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dent
         appointmentDate,
         startTime: selectedTime,
         endTime: selectedTime, // This will be calculated on the backend
-        reason: selectedService,
+        reason: 'Dental Checkup',
         notes
       });
 
@@ -426,25 +414,6 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dent
             </Box>
           </Grid>
 
-          {/* Service Selection */}
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Service</InputLabel>
-              <Select
-                value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value)}
-                label="Service"
-                required
-              >
-                {services.map((service) => (
-                  <MenuItem key={service} value={service}>
-                    {service}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
           {/* Notes */}
           <Grid item xs={12}>
             <TextField
@@ -463,7 +432,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dent
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={!selectedDate || !selectedTime || !selectedService || !customerName || !customerEmail || !selectedDentistId || loading}
+          disabled={!selectedDate || !selectedTime || !customerName || !customerEmail || !selectedDentistId || loading}
         >
           {loading ? 'Booking...' : 'Book Appointment'}
         </Button>

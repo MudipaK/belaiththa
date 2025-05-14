@@ -106,11 +106,11 @@ export class AuthController {
 
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.MAIN_DOCTOR)
+  @Roles(Role.MAIN_DOCTOR, Role.RECEPTIONIST)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiOperation({ summary: 'Get all users (Admin and Receptionist)' })
   @ApiResponse({ status: 200, description: 'Returns all users' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin or Receptionist access required' })
   async getAllUsers() {
     return this.authService.getAllUsers();
   }

@@ -419,10 +419,23 @@ export class AppointmentService {
     }
 
     // Check if there are any existing appointments for this time slot
+    const appointmentDate = new Date(date);
+    const [startHour, startMinute] = startTime.split(':');
+    const [endHour, endMinute] = endTime.split(':');
+    
+    const startDateTime = new Date(appointmentDate);
+    startDateTime.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
+    
+    const endDateTime = new Date(appointmentDate);
+    endDateTime.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
+
     const existingAppointment = await this.prisma.appointment.findFirst({
       where: {
         dentistId,
-        appointmentDate: new Date(date),
+        appointmentDate: {
+          gte: startDateTime,
+          lt: endDateTime
+        },
         status: { not: AppointmentStatus.CANCELLED }
       }
     });

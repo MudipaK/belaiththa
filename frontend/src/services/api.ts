@@ -66,10 +66,10 @@ export const authApi = {
 };
 
 export interface AppointmentData {
-  customerName: string;
-  customerEmail: string;
   dentistId: number;
   appointmentDate: string;
+  startTime: string;
+  endTime: string;
   reason: string;
   notes?: string;
 }

@@ -194,8 +194,10 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dent
       return false;
     }
 
-    const hasAppointment = appointments.some(
-      app => isSameDay(new Date(app.date), selectedDate) && app.time === time
+    const hasAppointment = appointments.some(app => 
+      isSameDay(new Date(app.appointmentDate), selectedDate) &&
+      format(new Date(app.appointmentDate), 'hh:mm a') === time &&
+      app.status !== 'CANCELLED'
     );
 
     return !hasAppointment;
@@ -224,15 +226,18 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({ open, onClose, dent
 
       appointmentDate.setHours(hour, parseInt(minutes, 10), 0, 0);
 
+      // Calculate end time (30 minutes after start time)
+      const endTimeDate = new Date(appointmentDate);
+      endTimeDate.setMinutes(endTimeDate.getMinutes() + 30);
+      const endTime = format(endTimeDate, 'hh:mm a');
+
       await appointmentApi.create({
         dentistId: selectedDentistId,
-        customerEmail,
-        customerName,
-        appointmentDate,
+        appointmentDate: appointmentDate.toISOString(),
         startTime: selectedTime,
-        endTime: selectedTime, // This will be calculated on the backend
+        endTime: endTime,
         reason: 'Dental Checkup',
-        notes
+        notes: notes || ''
       });
 
       onClose();

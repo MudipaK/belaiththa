@@ -7,9 +7,21 @@ import AppointmentModal from '../components/AppointmentModal';
 import heroImage from '../assets/hero-image.png';
 import aboutImage from '../assets/Dental Clinic Aesthetic Design Decoration.jpg';
 import { LocationOn, Phone, Email, Facebook, Twitter, Instagram } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const [isAppointmentModalOpen, setAppointmentModalOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleScheduleClick = () => {
+    if (!user) {
+      navigate('/signup', { state: { from: 'appointment' } });
+    } else {
+      setAppointmentModalOpen(true);
+    }
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', background: '#f6fafd' }}>
@@ -43,7 +55,7 @@ function Home() {
                       background: 'linear-gradient(90deg, #1565c0 0%, #42a5f5 100%)',
                     },
                   }}
-                  onClick={() => setAppointmentModalOpen(true)}
+                  onClick={handleScheduleClick}
                 >
                   Schedule Your Visit
                 </Button>

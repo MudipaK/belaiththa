@@ -238,19 +238,23 @@ const DentistDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const [hours, minutes] = selectedTime.split(':');
-      const endTime = `${hours}:${Number(minutes) + 30}`; // Add 30 minutes for the slot
-
       const token = localStorage.getItem('token');
       if (!token) {
         message.error('Authentication token not found');
         return;
       }
 
+      // Convert time to 24-hour format for consistency
+      const [time, period] = selectedTime.split(' ');
+      const [hours, minutes] = time.split(':');
+      const hour = period === 'PM' && hours !== '12' ? parseInt(hours) + 12 : 
+                  period === 'AM' && hours === '12' ? 0 : parseInt(hours);
+      const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}`;
+
       await appointmentApi.blockTimeSlot({
         date: format(selectedDate, 'yyyy-MM-dd'),
-        startTime: selectedTime,
-        endTime,
+        startTime: formattedTime,
+        endTime: formattedTime,
         reason: blockReason,
         dentistId: user.id
       });
@@ -279,10 +283,16 @@ const DentistDashboard = () => {
   const isTimeSlotBlocked = (time: string): boolean => {
     if (!selectedDate) return false;
 
+    // Convert time to 24-hour format for comparison
+    const [timeStr, period] = time.split(' ');
+    const [hours, minutes] = timeStr.split(':');
+    const hour = period === 'PM' && hours !== '12' ? parseInt(hours) + 12 : 
+                period === 'AM' && hours === '12' ? 0 : parseInt(hours);
+    const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}`;
+
     return blockedSlots.some(slot => 
       isSameDay(new Date(slot.date), selectedDate) &&
-      slot.startTime <= time &&
-      slot.endTime > time
+      slot.startTime === formattedTime
     );
   };
 

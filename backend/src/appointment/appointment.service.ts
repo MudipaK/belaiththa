@@ -18,68 +18,42 @@ export class AppointmentService {
     private notificationService: NotificationService,
   ) {}
 
-  async create(createAppointmentDto: CreateAppointmentDto) {
+  async create(createAppointmentDto: CreateAppointmentDto, userId: number) {
     // Verify that the dentist exists and is a dentist
     const dentist = await this.prisma.user.findUnique({
-      where: { id: createAppointmentDto.dentistId },
+      where: { 
+        id: createAppointmentDto.dentistId 
+      },
       include: { role: true }
     });
 
     if (!dentist) {
-      throw new BadRequestException('Dentist not found');
+      throw new NotFoundException('Dentist not found');
     }
 
     if (dentist.role.name !== Role.DENTIST) {
-      throw new BadRequestException('Invalid dentist ID');
+      throw new BadRequestException('Selected user is not a dentist');
     }
 
-    // Find or create customer
-    let customer = await this.prisma.user.findUnique({
-      where: { email: createAppointmentDto.customerEmail },
-      include: { role: true }
+    // Get or create customer from authenticated user
+    const customer = await this.prisma.user.findUnique({
+      where: { id: userId }
     });
 
     if (!customer) {
-      // Create new customer user
-      const customerRole = await this.prisma.role.findUnique({
-        where: { name: Role.CUSTOMER }
-      });
-
-      if (!customerRole) {
-        throw new BadRequestException('Customer role not found');
-      }
-
-      // Generate a random password for the customer
-      const tempPassword = Math.random().toString(36).slice(-8);
-      const hashedPassword = await bcrypt.hash(tempPassword, 10);
-
-      customer = await this.prisma.user.create({
-        data: {
-          email: createAppointmentDto.customerEmail,
-          name: createAppointmentDto.customerName,
-          password: hashedPassword,
-          roleId: customerRole.id,
-          customer: {
-            create: {}
-          }
-        },
-        include: {
-          role: true
-        }
-      });
-    } else if (customer.role.name !== Role.CUSTOMER) {
-      throw new BadRequestException('Email already registered as a different role');
+      throw new NotFoundException('Customer not found');
     }
 
-    // Check if the slot is blocked
-    const isBlocked = await this.isSlotBlocked(
-      new Date(createAppointmentDto.appointmentDate),
+    // Check if the time slot is available
+    const isSlotAvailable = await this.isSlotAvailable(
+      createAppointmentDto.appointmentDate,
       createAppointmentDto.startTime,
       createAppointmentDto.endTime,
+      createAppointmentDto.dentistId
     );
 
-    if (isBlocked) {
-      throw new BadRequestException('This time slot is blocked');
+    if (!isSlotAvailable) {
+      throw new BadRequestException('Selected time slot is not available');
     }
 
     // Create the appointment
@@ -433,5 +407,25 @@ export class AppointmentService {
     });
 
     return !!blockedSlot;
+  }
+
+  private async isSlotAvailable(date: string, startTime: string, endTime: string, dentistId: number) {
+    // Check if the time slot is blocked
+    const isBlocked = await this.isSlotBlocked(new Date(date), startTime, endTime);
+
+    if (isBlocked) {
+      return false;
+    }
+
+    // Check if there are any existing appointments for this time slot
+    const existingAppointment = await this.prisma.appointment.findFirst({
+      where: {
+        dentistId,
+        appointmentDate: new Date(date),
+        status: { not: AppointmentStatus.CANCELLED }
+      }
+    });
+
+    return !existingAppointment;
   }
 }

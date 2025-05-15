@@ -1,15 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsEmail, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsString } from 'class-validator';
 
 export class CreateAppointmentDto {
-  @ApiProperty({ description: 'Customer email' })
-  @IsEmail()
-  customerEmail: string;
-
-  @ApiProperty({ description: 'Customer name' })
-  @IsString()
-  customerName: string;
-
   @ApiProperty({ description: 'Dentist ID' })
   @IsNumber()
   dentistId: number;
@@ -30,7 +22,7 @@ export class CreateAppointmentDto {
   @IsString()
   reason: string;
 
-  @ApiProperty({ description: 'Additional notes' })
+  @ApiProperty({ description: 'Additional notes', required: false })
   @IsString()
   notes?: string;
 } 

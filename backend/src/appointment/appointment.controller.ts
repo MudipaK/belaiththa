@@ -16,10 +16,13 @@ export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new appointment (Public)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new appointment (Requires authentication)' })
   @ApiResponse({ status: 201, description: 'Appointment created successfully' })
-  async create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentService.create(createAppointmentDto);
+  @ApiResponse({ status: 401, description: 'Unauthorized - User must be logged in' })
+  async create(@Request() req, @Body() createAppointmentDto: CreateAppointmentDto) {
+    return this.appointmentService.create(createAppointmentDto, req.user.userId);
   }
 
   @Get()

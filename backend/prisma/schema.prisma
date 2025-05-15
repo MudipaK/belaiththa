@@ -81,14 +81,17 @@ model Receptionist {
 }
 
 model Customer {
-  id            Int      @id @default(autoincrement())
-  user          User     @relation(fields: [userId], references: [id])
-  userId        Int      @unique
-  dateOfBirth   DateTime?
-  address       String?
-  phoneNumber   String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         Int      @unique
+  dateOfBirth    DateTime?
+  address        String?
+  phoneNumber    String?
+  gender         String?  // Add gender field
+  allergies      String?  // Add allergies field
+  medicalHistory String?  // Add medicalHistory field
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Appointment {

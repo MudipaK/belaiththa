@@ -41,6 +41,7 @@ import { useAuth } from '../../context/AuthContext';
 import { dashboardStyles } from './DashboardStyles';
 import { appointmentApi, prescriptionApi, notificationApi } from '../../services/api';
 import { format } from 'date-fns';
+import AppointmentModal from '../AppointmentModal';
 
 interface Appointment {
   id: number;
@@ -80,6 +81,7 @@ const CustomerDashboard = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isAppointmentModalOpen, setAppointmentModalOpen] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -366,6 +368,7 @@ const CustomerDashboard = () => {
               variant="contained"
               startIcon={<EventIcon />}
               sx={dashboardStyles.actionButton}
+              onClick={() => setAppointmentModalOpen(true)}
             >
               Book New Appointment
             </Button>
@@ -440,6 +443,11 @@ const CustomerDashboard = () => {
           {successMessage}
         </Alert>
       </Snackbar>
+
+      <AppointmentModal
+        open={isAppointmentModalOpen}
+        onClose={() => setAppointmentModalOpen(false)}
+      />
     </Container>
   );
 };

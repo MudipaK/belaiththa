@@ -59,6 +59,10 @@ export const authApi = {
     const response = await axios.post(`${API_URL}/auth/create-customer`, data);
     return response.data;
   },
+  deleteUser: async (userId: number) => {
+    const response = await axios.delete(`${API_URL}/admin/users/${userId}`);
+    return response.data;
+  },
 };
 
 export interface AppointmentData {

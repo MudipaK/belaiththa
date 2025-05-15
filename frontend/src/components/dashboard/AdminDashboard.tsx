@@ -73,7 +73,6 @@ const AdminDashboard = () => {
     role: '',
     specialization: '',
     licenseNumber: '',
-    shift: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -183,7 +182,6 @@ const AdminDashboard = () => {
         role: '',
         specialization: '',
         licenseNumber: '',
-        shift: '',
       });
       fetchUsers();
     } catch (error: any) {
@@ -255,39 +253,6 @@ const AdminDashboard = () => {
               ))}
             </Select>
           </FormControl>
-
-          {newUser.role === 'DENTIST' && (
-            <>
-              <TextField
-                fullWidth
-                label="Specialization"
-                value={newUser.specialization}
-                onChange={(e) => setNewUser({ ...newUser, specialization: e.target.value })}
-                required
-              />
-              <TextField
-                fullWidth
-                label="License Number"
-                value={newUser.licenseNumber}
-                onChange={(e) => setNewUser({ ...newUser, licenseNumber: e.target.value })}
-                required
-              />
-            </>
-          )}
-
-          {newUser.role === 'RECEPTIONIST' && (
-            <FormControl fullWidth required>
-              <InputLabel>Shift</InputLabel>
-              <Select
-                value={newUser.shift}
-                onChange={(e) => setNewUser({ ...newUser, shift: e.target.value })}
-                label="Shift"
-              >
-                <MenuItem value="MORNING">Morning</MenuItem>
-                <MenuItem value="EVENING">Evening</MenuItem>
-              </Select>
-            </FormControl>
-          )}
         </Box>
       </DialogContent>
       <DialogActions>
@@ -367,35 +332,6 @@ const AdminDashboard = () => {
               ))}
             </Select>
           </FormControl>
-          {newUser.role === 'DENTIST' && (
-            <>
-              <TextField
-                label="Specialization"
-                value={newUser.specialization}
-                onChange={e => setNewUser({ ...newUser, specialization: e.target.value })}
-                sx={{ flex: '1 1 200px' }}
-              />
-              <TextField
-                label="License Number"
-                value={newUser.licenseNumber}
-                onChange={e => setNewUser({ ...newUser, licenseNumber: e.target.value })}
-                sx={{ flex: '1 1 200px' }}
-              />
-            </>
-          )}
-          {newUser.role === 'RECEPTIONIST' && (
-            <FormControl sx={{ flex: '1 1 200px' }}>
-              <InputLabel>Shift</InputLabel>
-              <Select
-                value={newUser.shift}
-                onChange={e => setNewUser({ ...newUser, shift: e.target.value })}
-                label="Shift"
-              >
-                <MenuItem value="MORNING">Morning</MenuItem>
-                <MenuItem value="EVENING">Evening</MenuItem>
-              </Select>
-            </FormControl>
-          )}
           <Button
             type="submit"
             variant="contained"
@@ -490,12 +426,10 @@ const AdminDashboard = () => {
           <Table>
             <TableHead sx={dashboardStyles.tableHeader}>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Specialization</TableCell>
-                <TableCell>License/Shift</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell sx={dashboardStyles.tableHeader}>Name</TableCell>
+                <TableCell sx={dashboardStyles.tableHeader}>Email</TableCell>
+                <TableCell sx={dashboardStyles.tableHeader}>Role</TableCell>
+                <TableCell sx={dashboardStyles.tableHeader}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -532,8 +466,6 @@ const AdminDashboard = () => {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>{user.specialization || '-'}</TableCell>
-                    <TableCell>{user.licenseNumber || user.shift || '-'}</TableCell>
                     <TableCell align="right">
                       <IconButton size="small" color="primary">
                         <EditIcon />
@@ -762,37 +694,6 @@ const AdminDashboard = () => {
                 ))}
               </Select>
             </FormControl>
-
-            {newUser.role === 'DENTIST' && (
-              <>
-                <TextField
-                  label="Specialization"
-                  value={newUser.specialization}
-                  onChange={(e) => setNewUser({ ...newUser, specialization: e.target.value })}
-                  fullWidth
-                />
-                <TextField
-                  label="License Number"
-                  value={newUser.licenseNumber}
-                  onChange={(e) => setNewUser({ ...newUser, licenseNumber: e.target.value })}
-                  fullWidth
-                />
-              </>
-            )}
-
-            {newUser.role === 'RECEPTIONIST' && (
-              <FormControl fullWidth required>
-                <InputLabel>Shift</InputLabel>
-                <Select
-                  value={newUser.shift}
-                  onChange={(e) => setNewUser({ ...newUser, shift: e.target.value })}
-                  label="Shift"
-                >
-                  <MenuItem value="MORNING">Morning</MenuItem>
-                  <MenuItem value="EVENING">Evening</MenuItem>
-                </Select>
-              </FormControl>
-            )}
           </Box>
         </DialogContent>
         <DialogActions>

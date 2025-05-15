@@ -100,9 +100,9 @@ export default function Login() {
             Sign In
           </Button>
           <Box sx={{ textAlign: 'center' }}>
-            <Link component={RouterLink} to="/signup" variant="body2">
-              {"Don't have an account? Sign Up"}
-            </Link>
+            {/* <Link component={RouterLink} to="/signup" variant="body2">
+              {"Don't have an CUSTOMER account? Sign up "}
+            </Link> */}
           </Box>
         </Box>
       </Box>

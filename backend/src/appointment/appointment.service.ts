@@ -42,11 +42,14 @@ export class AppointmentService {
 
     if (!customer) {
       throw new NotFoundException('Customer not found');
+    }    // Check if the time slot is available
+    const appointmentDate = new Date(createAppointmentDto.appointmentDate);
+    if (isNaN(appointmentDate.getTime())) {
+      throw new BadRequestException('Invalid appointment date');
     }
 
-    // Check if the time slot is available
     const isSlotAvailable = await this.isSlotAvailable(
-      createAppointmentDto.appointmentDate,
+      appointmentDate.toISOString(),
       createAppointmentDto.startTime,
       createAppointmentDto.endTime,
       createAppointmentDto.dentistId
@@ -54,14 +57,12 @@ export class AppointmentService {
 
     if (!isSlotAvailable) {
       throw new BadRequestException('Selected time slot is not available');
-    }
-
-    // Create the appointment
+    }    // Create the appointment
     const appointment = await this.prisma.appointment.create({
       data: {
         customerId: customer.id,
         dentistId: createAppointmentDto.dentistId,
-        appointmentDate: createAppointmentDto.appointmentDate,
+        appointmentDate: appointmentDate,
         reason: createAppointmentDto.reason,
         notes: createAppointmentDto.notes,
         status: AppointmentStatus.PENDING,

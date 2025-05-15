@@ -21,11 +21,20 @@ import {
   CardContent,
   Avatar,
   Chip,
+  IconButton,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material';
-import { Person as PersonIcon, Group as GroupIcon, Event as EventIcon } from '@mui/icons-material';
+import { Person as PersonIcon, Group as GroupIcon, Event as EventIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { dashboardStyles } from './DashboardStyles';
 import { authApi } from '../../services/api';
+import { message } from 'antd';
 
 export default function MainDoctorDashboard() {
   const { user } = useAuth();
@@ -36,10 +45,10 @@ export default function MainDoctorDashboard() {
     role: string;
     specialization?: string;
     licenseNumber?: string;
-    shift?: string;
   }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -47,8 +56,9 @@ export default function MainDoctorDashboard() {
     role: '',
     specialization: '',
     licenseNumber: '',
-    shift: '',
   });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: number; name: string; role: string } | null>(null);
 
   const roles = [
     { value: 'ADMIN', label: 'Admin' },
@@ -83,7 +93,6 @@ export default function MainDoctorDashboard() {
         role: '',
         specialization: '',
         licenseNumber: '',
-        shift: '',
       });
       fetchUsers();
     } catch (err) {
@@ -91,6 +100,33 @@ export default function MainDoctorDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteClick = (user: { id: number; name: string; role: string }) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    setLoading(true);
+    try {
+      await authApi.deleteUser(userToDelete.id);
+      setSuccessMessage(`${userToDelete.role} ${userToDelete.name} deleted successfully`);
+      fetchUsers(); // Refresh the user list
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
   };
 
   // Premium stats (example, you can fetch real stats from backend)
@@ -187,35 +223,6 @@ export default function MainDoctorDashboard() {
                 ))}
               </Select>
             </FormControl>
-            {formData.role === 'DENTIST' && (
-              <>
-                <TextField
-                  label="Specialization"
-                  value={formData.specialization}
-                  onChange={e => setFormData({ ...formData, specialization: e.target.value })}
-                  sx={{ flex: '1 1 200px', background: 'white', borderRadius: 2 }}
-                />
-                <TextField
-                  label="License Number"
-                  value={formData.licenseNumber}
-                  onChange={e => setFormData({ ...formData, licenseNumber: e.target.value })}
-                  sx={{ flex: '1 1 200px', background: 'white', borderRadius: 2 }}
-                />
-              </>
-            )}
-            {formData.role === 'RECEPTIONIST' && (
-              <FormControl sx={{ flex: '1 1 200px', background: 'white', borderRadius: 2 }}>
-                <InputLabel>Shift</InputLabel>
-                <Select
-                  value={formData.shift}
-                  onChange={e => setFormData({ ...formData, shift: e.target.value })}
-                  label="Shift"
-                >
-                  <MenuItem value="MORNING">Morning</MenuItem>
-                  <MenuItem value="EVENING">Evening</MenuItem>
-                </Select>
-              </FormControl>
-            )}
             <Button
               type="submit"
               variant="contained"
@@ -238,14 +245,13 @@ export default function MainDoctorDashboard() {
                   <TableCell>Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
-                  <TableCell>Specialization</TableCell>
-                  <TableCell>License/Shift</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center">No users found</TableCell>
+                    <TableCell colSpan={4} align="center">No users found</TableCell>
                   </TableRow>
                 ) : (
                   users.map((user) => (
@@ -273,8 +279,16 @@ export default function MainDoctorDashboard() {
                           sx={{ fontWeight: 600, letterSpacing: 1 }}
                         />
                       </TableCell>
-                      <TableCell>{user.specialization || '-'}</TableCell>
-                      <TableCell>{user.licenseNumber || user.shift || '-'}</TableCell>
+                      <TableCell>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteClick(user)}
+                          disabled={loading}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -282,6 +296,59 @@ export default function MainDoctorDashboard() {
             </Table>
           </TableContainer>
         </Paper>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          aria-labelledby="delete-dialog-title"
+          aria-describedby="delete-dialog-description"
+        >
+          <DialogTitle id="delete-dialog-title">
+            Confirm Delete User
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="delete-dialog-description">
+              Are you sure you want to delete {userToDelete?.role} {userToDelete?.name}? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} disabled={loading}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained"
+              disabled={loading}
+            >
+              {loading ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Notifications */}
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={() => setError('')}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert severity="error" onClose={() => setError('')}>
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={6000}
+          onClose={() => setSuccessMessage(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert severity="success" onClose={() => setSuccessMessage(null)}>
+            {successMessage}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );

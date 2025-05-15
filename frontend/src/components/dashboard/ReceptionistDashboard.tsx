@@ -430,14 +430,12 @@ export default function ReceptionistDashboard() {
                       <TableCell>Name</TableCell>
                       <TableCell>Email</TableCell>
                       <TableCell>Role</TableCell>
-                      <TableCell>Specialization</TableCell>
-                      <TableCell>License/Shift</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredUsers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">No users found</TableCell>
+                        <TableCell colSpan={3} align="center">No users found</TableCell>
                       </TableRow>
                     ) : (
                       filteredUsers.map((user) => (
@@ -464,8 +462,6 @@ export default function ReceptionistDashboard() {
                               size="small"
                             />
                           </TableCell>
-                          <TableCell>{user.specialization || '-'}</TableCell>
-                          <TableCell>{user.licenseNumber || user.shift || '-'}</TableCell>
                         </TableRow>
                       ))
                     )}

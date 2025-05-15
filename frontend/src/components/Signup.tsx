@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { TextField, Button, Typography, Container, Box, Link, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
+import { TextField, Button, Typography, Container, Box, Link, FormControl, InputLabel, Select, MenuItem, Alert } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
 
@@ -14,6 +14,7 @@ interface SignupData {
 
 export default function Signup() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<SignupData>({
@@ -23,6 +24,8 @@ export default function Signup() {
     confirmPassword: '',
     role: 'CUSTOMER'
   });
+
+  const isFromAppointment = location.state?.from === 'appointment';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
@@ -67,6 +70,11 @@ export default function Signup() {
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
+        {isFromAppointment && (
+          <Alert severity="info" sx={{ mt: 2, width: '100%' }}>
+            To book an appointment, you need to create an account first.
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
           <TextField
             margin="normal"

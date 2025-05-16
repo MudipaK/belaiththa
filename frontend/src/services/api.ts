@@ -63,6 +63,14 @@ export const authApi = {
     const response = await axios.delete(`${API_URL}/admin/users/${userId}`);
     return response.data;
   },
+  getUserById: async (id: string) => {
+    const response = await axios.get(`${API_URL}/auth/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    return response.data;
+  },
 };
 
 export interface AppointmentData {
@@ -129,6 +137,10 @@ export const appointmentApi = {
     additionalNotes?: string;
   }) => {
     const response = await axios.post(`${API_URL}/appointments/${appointmentId}/bill`, billData);
+    return response.data;
+  },
+  getUserBills: async (userId: string) => {
+    const response = await axios.get(`${API_URL}/appointments/bills/user/${userId}`);
     return response.data;
   },
 };

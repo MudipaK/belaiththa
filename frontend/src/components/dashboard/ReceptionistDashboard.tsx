@@ -41,6 +41,7 @@ import {
 } from '@mui/icons-material';
 import CreateCustomerModal from '../CreateCustomerModal';
 import { GenerateBillModal } from '../GenerateBillModal';
+import { useNavigate } from 'react-router-dom';
 
 interface Appointment {
   id: number;
@@ -80,6 +81,7 @@ export default function ReceptionistDashboard() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [appointmentSearch, setAppointmentSearch] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const navigate = useNavigate();
 
   const fetchAppointments = async () => {
     try {
@@ -221,6 +223,10 @@ export default function ReceptionistDashboard() {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+  };
+
+  const handleUserClick = (userId: number) => {
+    navigate(`/users/${userId}`);
   };
 
   return (
@@ -423,13 +429,15 @@ export default function ReceptionistDashboard() {
                   </FormControl>
                 </Box>
               </Box>
-              <TableContainer>
+              <TableContainer component={Paper}>
                 <Table>
                   <TableHead>
                     <TableRow>
                       <TableCell>Name</TableCell>
                       <TableCell>Email</TableCell>
                       <TableCell>Role</TableCell>
+                      <TableCell>Specialization/Shift</TableCell>
+                      <TableCell>License Number</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -439,29 +447,17 @@ export default function ReceptionistDashboard() {
                       </TableRow>
                     ) : (
                       filteredUsers.map((user) => (
-                        <TableRow key={user.id} hover>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Avatar sx={{ width: 32, height: 32 }}>
-                                {user.name.charAt(0)}
-                              </Avatar>
-                              {user.name}
-                            </Box>
-                          </TableCell>
+                        <TableRow
+                          key={user.id}
+                          hover
+                          onClick={() => handleUserClick(user.id)}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <TableCell>{user.name}</TableCell>
                           <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={user.role}
-                              color={
-                                user.role === 'DENTIST'
-                                  ? 'primary'
-                                  : user.role === 'RECEPTIONIST'
-                                  ? 'secondary'
-                                  : 'default'
-                              }
-                              size="small"
-                            />
-                          </TableCell>
+                          <TableCell>{user.role}</TableCell>
+                          <TableCell>{user.specialization || user.shift || '-'}</TableCell>
+                          <TableCell>{user.licenseNumber || '-'}</TableCell>
                         </TableRow>
                       ))
                     )}

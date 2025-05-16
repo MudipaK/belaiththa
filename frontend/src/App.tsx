@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './components/Unauthorized';
 import { AuthProvider } from './context/AuthContext';
 import PatientProfile from './components/patients/PatientProfile';
+import UserDetails from './pages/UserDetails';
 
 const theme = createTheme({
   palette: {
@@ -82,6 +83,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
 
                 <Route path="/patients/:patientId" element={<PatientProfile />} />
+                <Route path="/users/:id" element={<UserDetails />} />
               </Routes>
             </Box>
           </Box>

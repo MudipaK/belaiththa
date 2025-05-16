@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
@@ -123,5 +123,20 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Customer created successfully' })
   async createCustomer(@Body() createCustomerDto: CreateCustomerDto) {
     return this.authService.createCustomer(createCustomerDto);
+  }
+
+  @Get('users/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get detailed user information by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the detailed user information',
+    type: UserDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserById(@Param('id') id: string): Promise<UserDto> {
+    return this.authService.getUserDetails(parseInt(id, 10));
   }
 }

@@ -159,4 +159,15 @@ export class AppointmentController {
   ) {
     return this.appointmentService.generateBill(id, billData);
   }
+
+  @Get('bills/user/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all bills for a user' })
+  @ApiResponse({ status: 200, description: 'Returns all bills for the user' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserBills(@Param('userId') userId: string) {
+    return this.appointmentService.getUserBills(parseInt(userId, 10));
+  }
 }

@@ -371,19 +371,73 @@ export class AppointmentService {
       throw new BadRequestException('Can only generate bills for completed appointments');
     }
 
-    // Create bill record
-    const bill = await this.prisma.bill.create({
-      data: {
-        appointmentId: parseInt(appointmentId),
-        amount: billData.amount,
-        serviceDescription: billData.serviceDescription,
-        additionalNotes: billData.additionalNotes,
-        status: 'PAID',
-        createdAt: new Date(),
+    // Check if a bill already exists for this appointment
+    const existingBill = await this.prisma.bill.findUnique({
+      where: { appointmentId: parseInt(appointmentId) },
+    });
+
+    let bill;
+    if (existingBill) {
+      // Update existing bill
+      bill = await this.prisma.bill.update({
+        where: { appointmentId: parseInt(appointmentId) },
+        data: {
+          amount: billData.amount,
+          serviceDescription: billData.serviceDescription,
+          additionalNotes: billData.additionalNotes,
+          status: 'PAID',
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      // Create new bill
+      bill = await this.prisma.bill.create({
+        data: {
+          appointmentId: parseInt(appointmentId),
+          amount: billData.amount,
+          serviceDescription: billData.serviceDescription,
+          additionalNotes: billData.additionalNotes,
+          status: 'PAID',
+          createdAt: new Date(),
+        },
+      });
+    }
+
+    return bill;
+  }
+
+  async getUserBills(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const bills = await this.prisma.bill.findMany({
+      where: {
+        appointment: {
+          customerId: userId,
+        },
+      },
+      include: {
+        appointment: {
+          include: {
+            dentist: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
-    return bill;
+    return bills;
   }
 
   private async isSlotBlocked(date: Date, startTime: string, endTime: string) {

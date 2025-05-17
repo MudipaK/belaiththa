@@ -42,6 +42,7 @@ import {
 import CreateCustomerModal from '../CreateCustomerModal';
 import { GenerateBillModal } from '../GenerateBillModal';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 interface Appointment {
   id: number;
@@ -227,6 +228,17 @@ export default function ReceptionistDashboard() {
 
   const handleUserClick = (userId: number) => {
     navigate(`/users/${userId}`);
+  };
+
+  const handleCreateCustomer = async (data: CreateCustomerFormData) => {
+    try {
+      await createCustomer(data);
+      toast.success('Customer created successfully. A verification email has been sent to their email address.');
+      setShowCreateCustomerModal(false);
+      fetchCustomers();
+    } catch (error) {
+      toast.error('Failed to create customer');
+    }
   };
 
   return (

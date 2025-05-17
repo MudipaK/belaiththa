@@ -86,6 +86,7 @@ export default function MainDoctorDashboard() {
     setError('');
     try {
       await authApi.createUser(formData);
+      setSuccessMessage('User created successfully. A verification email has been sent to their email address.');
       setFormData({
         name: '',
         email: '',
